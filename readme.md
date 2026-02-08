@@ -64,6 +64,22 @@ Upper layers move into research territory.
 
 ## Project Structure
 
+```
+multi_agent_memory/
+├── src/
+│ └── mam/
+│ ├── m1_blackboard/
+│ ├── m2_permissions/
+│ ├── m3_conflicts/
+│ ├── m4_routing/
+│ ├── m5_episodic/
+│ ├── m6_comms/
+│ ├── m7_partner_models/
+│ ├── m8_belief_fusion/
+│ ├── m9_credit/
+│ └── m10_culture/
+
+```
 
 Each `Mx` folder corresponds to a sub-project described below.
 
