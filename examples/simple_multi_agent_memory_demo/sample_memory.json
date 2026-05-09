@@ -1,4 +1,11 @@
 {
-  "episodic_memory": [],
-  "coordination_memory": []
+  "shared_memory": {
+    "episodic_memory": [],
+    "coordination_memory": []
+  },
+  "private_memory": {
+    "research_agent": [],
+    "planner_agent": [],
+    "critic_agent": []
+  }
 }
