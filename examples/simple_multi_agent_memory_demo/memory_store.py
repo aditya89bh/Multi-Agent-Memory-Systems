@@ -5,14 +5,18 @@ from datetime import datetime
 MEMORY_FILE = Path(__file__).parent / "sample_memory.json"
 
 
-DECAY_THRESHOLD = 3
-
-
 def load_memory():
     if not MEMORY_FILE.exists():
         return {
-            "episodic_memory": [],
-            "coordination_memory": []
+            "shared_memory": {
+                "episodic_memory": [],
+                "coordination_memory": []
+            },
+            "private_memory": {
+                "research_agent": [],
+                "planner_agent": [],
+                "critic_agent": []
+            }
         }
 
     with open(MEMORY_FILE, "r") as f:
@@ -24,31 +28,42 @@ def save_memory(memory):
         json.dump(memory, f, indent=2)
 
 
-def add_episode(agent, event, outcome, salience=1):
+def add_episode(agent, event, outcome, salience=1, private=False):
     memory = load_memory()
 
-    memory["episodic_memory"].append({
+    memory_entry = {
         "timestamp": datetime.utcnow().isoformat(),
         "agent": agent,
         "event": event,
         "outcome": outcome,
         "salience": salience,
         "retrieval_count": 0
-    })
+    }
+
+    if private:
+        memory["private_memory"][agent].append(memory_entry)
+    else:
+        memory["shared_memory"]["episodic_memory"].append(memory_entry)
 
     save_memory(memory)
 
 
-def retrieve_relevant_memories(keyword=None):
+def retrieve_relevant_memories(keyword=None, agent=None):
     memory = load_memory()
 
-    memories = memory["episodic_memory"]
+    shared = memory["shared_memory"]["episodic_memory"]
+
+    private = []
+    if agent:
+        private = memory["private_memory"].get(agent, [])
+
+    memories = shared + private
 
     if keyword:
         memories = [
             m for m in memories
-            if keyword.lower() in m["outcome"].lower()
-            or keyword.lower() in m["event"].lower()
+            if keyword.lower() in m["event"].lower()
+            or keyword.lower() in m["outcome"].lower()
         ]
 
     for item in memories:
@@ -57,25 +72,21 @@ def retrieve_relevant_memories(keyword=None):
 
     save_memory(memory)
 
-    return sorted(
-        memories,
-        key=lambda x: x["salience"],
-        reverse=True
-    )
+    return sorted(memories, key=lambda x: x["salience"], reverse=True)
 
 
 def decay_memories():
     memory = load_memory()
 
-    updated = []
+    updated_shared = []
 
-    for item in memory["episodic_memory"]:
+    for item in memory["shared_memory"]["episodic_memory"]:
         item["salience"] -= 1
 
         if item["salience"] > 0:
-            updated.append(item)
+            updated_shared.append(item)
 
-    memory["episodic_memory"] = updated
+    memory["shared_memory"]["episodic_memory"] = updated_shared
 
     save_memory(memory)
 
@@ -83,7 +94,7 @@ def decay_memories():
 def update_coordination(task, status, owner):
     memory = load_memory()
 
-    memory["coordination_memory"].append({
+    memory["shared_memory"]["coordination_memory"].append({
         "timestamp": datetime.utcnow().isoformat(),
         "task": task,
         "status": status,
@@ -96,10 +107,16 @@ def update_coordination(task, status, owner):
 def print_memory():
     memory = load_memory()
 
-    print("\n=== Episodic Memory ===")
-    for item in memory["episodic_memory"]:
+    print("\n=== Shared Episodic Memory ===")
+    for item in memory["shared_memory"]["episodic_memory"]:
         print(item)
 
     print("\n=== Coordination Memory ===")
-    for item in memory["coordination_memory"]:
+    for item in memory["shared_memory"]["coordination_memory"]:
         print(item)
+
+    print("\n=== Private Memory ===")
+    for agent, items in memory["private_memory"].items():
+        print(f"\n[{agent}]")
+        for item in items:
+            print(item)
