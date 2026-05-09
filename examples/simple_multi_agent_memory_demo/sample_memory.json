@@ -1,7 +1,10 @@
 {
   "shared_memory": {
     "episodic_memory": [],
-    "coordination_memory": []
+    "coordination_memory": [],
+    "event_memory": [],
+    "conflict_memory": [],
+    "arbitration_memory": []
   },
   "private_memory": {
     "research_agent": [],
