@@ -1,4 +1,8 @@
-from memory_store import add_episode, update_coordination
+from memory_store import (
+    add_episode,
+    update_coordination,
+    retrieve_relevant_memories
+)
 
 
 class ResearchAgent:
@@ -8,7 +12,8 @@ class ResearchAgent:
         add_episode(
             "research_agent",
             "Collected user communication preference",
-            finding
+            finding,
+            salience=2
         )
 
         update_coordination(
@@ -22,12 +27,23 @@ class ResearchAgent:
 
 class PlannerAgent:
     def run(self, research):
-        plan = f"Generate concise outreach strategy using insight: {research}"
+        previous_memories = retrieve_relevant_memories("concise")
+
+        if previous_memories:
+            memory_hint = previous_memories[0]["outcome"]
+        else:
+            memory_hint = "No previous preference memory found"
+
+        plan = (
+            f"Generate concise outreach strategy using insight: {research}. "
+            f"Retrieved memory: {memory_hint}"
+        )
 
         add_episode(
             "planner_agent",
             "Created outreach strategy",
-            plan
+            plan,
+            salience=3
         )
 
         update_coordination(
@@ -41,12 +57,15 @@ class PlannerAgent:
 
 class CriticAgent:
     def run(self, plan):
-        critique = "Plan approved. Maintain concise tone and avoid aggressive language."
+        critique = (
+            "Plan approved. Maintain concise tone and avoid aggressive language."
+        )
 
         add_episode(
             "critic_agent",
             "Reviewed outreach strategy",
-            critique
+            critique,
+            salience=2
         )
 
         update_coordination(
